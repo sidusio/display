@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Displays the input</title>
+    <!--<script type="importmap">
+        {
+          "imports": {
+            "easyqrcodejs": "https://unpkg.com/easyqrcodejs@4.6.2/dist/easy.qrcode.min.js"
+          }
+        }
+    </script>-->
+    <script src="https://unpkg.com/easyqrcodejs@4.6.2/dist/easy.qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            height: 100vh;
+        }
+        #content {
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+        nav {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div id="content"></div>
+    <nav>Settings</nav>
+    <script type="module">
+        // easy.qrcode.min.js defines a global `QRCode`
+
+        const contentDiv = document.getElementById('content');
+
+        const defaultCleanup = () => {
+            while (contentDiv.firstChild) {
+                contentDiv.removeChild(contentDiv.firstChild);
+            }
+        };
+        let cleanup = defaultCleanup;
+
+        const getOptions = () => {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                type: params.get('type') || 'text',
+                data: params.get('data') || 'Hello, World!',
+            };
+        };
+
+        const render = () => {
+            cleanup();
+
+            const options = getOptions();
+
+            switch (options.type) {
+                case 'text':
+                    const p = document.createElement('p');
+                    p.classList.add('text-display')
+                    p.textContent = options.data;
+                    contentDiv.appendChild(p);
+                    break;
+                case 'qrcode':
+                    const qrCode = new QRCode(contentDiv, {
+                        text: options.data
+                    });
+                    cleanup = () => {
+                        qrCode.clear();
+                        defaultCleanup();
+                    };
+                    break;
+                default:
+                    const err = document.createElement('p');
+                    err.textContent = `Unknown type: ${options.type}`;
+                    contentDiv.appendChild(err);
+            }
+        };
+
+        render();
+    </script>
+</body>
+</html>
