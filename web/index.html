@@ -3,13 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Displays the input</title>
-    <!--<script type="importmap">
-        {
-          "imports": {
-            "easyqrcodejs": "https://unpkg.com/easyqrcodejs@4.6.2/dist/easy.qrcode.min.js"
-          }
-        }
-    </script>-->
     <script src="https://unpkg.com/easyqrcodejs@4.6.2/dist/easy.qrcode.min.js"></script>
     <style>
         :root {
@@ -80,6 +73,7 @@
                     display: flex;
                     flex-direction: column;
                     gap: .2rem;
+                    margin-bottom: 1rem;
 
                     input, select {
                         padding: .5rem;
@@ -147,25 +141,37 @@
                 <select name="type" id="type">
                     <option value="text">Text</option>
                     <option value="qrcode">QR Code</option>
+                    <option value="time">Current Time</option>
+                    <option value="countdown">Countdown</option>
+                    <option value="stopwatch">Stopwatch</option>
+                    <option value="timer">Timer</option>
                 </select>
             </label>
-            <br>
             <label for="data">
                 Data
-                <input type="text" id="data" name="data" value="Hello, World!">
+                <input type="text" id="data" name="data" value="https://example.com">
             </label>
-            <br>
+            <label for="text">
+                Text
+                <input type="text" id="text" name="text" value="Hello, World!">
+            </label>
+            <label for="targetTime">
+                Target Time
+                <input type="datetime-local" id="targetTime" name="targetTime">
+            </label>
+            <label for="timerDuration">
+                Timer Duration (hh:mm:ss)
+                <input type="text" id="timerDuration" name="timerDuration" value="1:30:15">
+            </label>
             <label for="backgroundColor">
-                Background Color (for QR Code)
+                Background Color
                 <input type="color" id="backgroundColor" name="backgroundColor" value="#ffffff">
             </label>
-            <br>
             <label for="foregroundColor">
-                Foreground Color (for QR Code)
+                Foreground Color
                 <input type="color" id="foregroundColor" name="foregroundColor" value="#000000">
             </label>
-            <br>
-            <input type="submit" value="Create" class="btn clickable">
+            <input type="submit" value="Done" class="btn clickable">
         </form>
     </div>
 
@@ -176,17 +182,90 @@
     <script type="module">
         const creator = document.querySelector('.creator');
         const openButton = document.querySelector('.creator .tab');
-
-        let isOpen = false;
+        const form = document.querySelector('.creator form');
 
         openButton.addEventListener('click', () => {
-            isOpen = !isOpen;
-            if (isOpen) {
-                creator.classList.add('open');
-            } else {
-                creator.classList.remove('open');
-            }
+            creator.classList.toggle('open');
         });
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+            creator.classList.remove('open');
+        });
+
+        // Populate form inputs from URL parameters on page load
+        const urlParams = new URLSearchParams(window.location.search);
+        for (const [key, value] of urlParams) {
+            const input = form.elements.namedItem(key);
+            if (input) {
+                input.value = value;
+            }
+        }
+
+        const inputsForType = {
+            text: ['text', 'foregroundColor', 'backgroundColor'],
+            qrcode: ['data', 'backgroundColor', 'foregroundColor'],
+            time: ['backgroundColor', 'foregroundColor'],
+            countdown: ['targetTime', 'backgroundColor', 'foregroundColor'],
+            stopwatch: ['backgroundColor', 'foregroundColor'],
+            timer: ['timerDuration', 'backgroundColor', 'foregroundColor'],
+        };
+
+        const setURLParameters = () => {
+            const validInputs = inputsForType[form.elements.namedItem('type').value] || [];
+
+            const urlParams = new URLSearchParams();
+            for (const [key, value] of new FormData(form)) {
+                if ( typeof value !== 'string' || value.length === 0 ) {
+                    continue;
+                }
+                if (key !== 'type' && !validInputs.includes(key)) {
+                    continue;
+                }
+                if (key === 'backgroundColor') {
+                    if (value.toLowerCase() === '#ffffff') {
+                        continue;
+                    }
+                }
+                    if (key === 'foregroundColor') {
+                        if (value.toLowerCase() === '#000000') {
+                            continue;
+                        }
+                    }
+                urlParams.set(key, value);
+            }
+
+            const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
+            window.history.replaceState({}, '', newUrl);
+        };
+        setURLParameters()
+        // Change url parameters when input values change
+        form.addEventListener('input', () => {
+            setURLParameters()
+            // Trigger a popstate event to notify listeners
+            window.dispatchEvent(new PopStateEvent('popstate'));
+        });
+
+        const typeSelect = form.elements.namedItem('type');
+        const updateInputVisibility = () => {
+            const selectedType = typeSelect.value;
+            const visibleInputs = inputsForType[selectedType] || [];
+            for (const element of form.elements) {
+                if (element.tagName.toLowerCase() === 'button' || element.type === 'submit') {
+                    continue;
+                }
+                if (element.name === 'type') {
+                    continue;
+                }
+                if (visibleInputs.includes(element.name)) {
+                    element.parentElement.style.display = 'flex';
+                } else {
+                    element.parentElement.style.display = 'none';
+                }
+            }
+        };
+        updateInputVisibility();
+        typeSelect.addEventListener('change', updateInputVisibility);
     </script>
 
     <script type="module">
@@ -197,10 +276,13 @@
         const getOptions = () => {
             const params = new URLSearchParams(window.location.search);
             return {
-                type: params.get('type') || 'text',
-                data: params.get('data') || 'Hello, World!',
+                type: params.get('type') || '',
+                data: params.get('data') || '',
+                text: params.get('text') || '',
                 backgroundColor: params.get('backgroundColor') || '#ffffff',
                 foregroundColor: params.get('foregroundColor') || '#000000',
+                targetTime: params.get('targetTime') || null,
+                timerDuration: params.get('timerDuration') || "0:0:01",
             };
         };
 
@@ -228,21 +310,212 @@
             };
         };
 
+        const renderTime = () => {
+            const p = document.createElement('p');
+            p.style.fontSize = '8rem';
+            contentDiv.appendChild(p);
+
+            const updateTime = () => {
+                const now = new Date();
+                p.textContent = now.toLocaleTimeString();
+            };
+
+            updateTime();
+            const intervalId = setInterval(updateTime, 1000);
+
+            return () => {
+                clearInterval(intervalId);
+                contentDiv.removeChild(p);
+            };
+        };
+
+        const renderCountDown = (targetTime) => {
+            const div = document.createElement('div');
+            div.style.display = 'flex';
+            div.style.flexDirection = 'column';
+            div.style.alignItems = 'center';
+            contentDiv.appendChild(div);
+            const p = document.createElement('p');
+            p.style.fontSize = '8rem';
+            div.appendChild(p);
+            const p2 = document.createElement('p');
+            p2.textContent = `Counting down to: ${targetTime.toLocaleString()}`;
+            p2.style.fontSize = '2rem';
+            div.appendChild(p2);
+
+            const updateCountDown = () => {
+                const now = new Date();
+                const diff = targetTime - now;
+                if (diff <= 0) {
+                    p.textContent = "00:00:00";
+                    return;
+                }
+                const hours = String(Math.floor(diff / (1000 * 60 * 60))).padStart(2, '0');
+                const minutes = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+                const seconds = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
+                p.textContent = `${hours}:${minutes}:${seconds}`;
+            };
+
+            updateCountDown();
+            const intervalId = setInterval(updateCountDown, 1000);
+
+            return () => {
+                clearInterval(intervalId);
+                contentDiv.removeChild(div);
+            };
+        };
+
+        const renderStopwatch = () => {
+            let startTime = null;
+            const div = document.createElement('div');
+            div.style.display = 'flex';
+            div.style.flexDirection = 'column';
+            div.style.alignItems = 'center';
+            contentDiv.appendChild(div);
+
+            const p = document.createElement('p');
+            p.style.fontSize = '8rem';
+            p.textContent = '00:00:00';
+            div.appendChild(p);
+            const btn = document.createElement('button');
+            btn.textContent = 'Start';
+            btn.className = 'btn clickable';
+            div.appendChild(btn);
+
+            let interval = null;
+            const updateStopwatch = () => {
+                const now = new Date();
+                const diff = now - startTime;
+                const hours = String(Math.floor(diff / (1000 * 60 * 60))).padStart(2, '0');
+                const minutes = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+                const seconds = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
+                p.textContent = `${hours}:${minutes}:${seconds}`;
+            };
+
+            btn.addEventListener('click', () => {
+                if (btn.textContent === 'Start') {
+                    startTime = new Date();
+                    updateStopwatch();
+                    interval = setInterval(updateStopwatch, 1000);
+                    btn.textContent = 'Stop';
+                } else {
+                    clearInterval(interval);
+                    interval = null;
+                    btn.textContent = 'Start';
+                }
+            });
+            return () => {
+                if (interval) {
+                    clearInterval(interval);
+                }
+                contentDiv.removeChild(div);
+            };
+        };
+
+        const renderTimer = (durationStr) => {
+            // Parsing duration string like "1:30:15:"
+            const parts = durationStr.split(':').map(part => parseInt(part, 10));
+            let totalSeconds = 0;
+            if (parts.length === 3) {
+                totalSeconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
+            } else if (parts.length === 2) {
+                totalSeconds = parts[0] * 60 + parts[1];
+            } else if (parts.length === 1) {
+                totalSeconds = parts[0];
+            } else {
+                totalSeconds = 0;
+            }
+
+            const secondsToHMS = (secs) => {
+                const hours = String(Math.floor(secs / 3600)).padStart(2, '0');
+                const minutes = String(Math.floor((secs % 3600) / 60)).padStart(2, '0');
+                const seconds = String(secs % 60).padStart(2, '0');
+                return `${hours}:${minutes}:${seconds}`;
+            };
+
+
+            const div = document.createElement('div');
+            div.style.display = 'flex';
+            div.style.flexDirection = 'column';
+            div.style.alignItems = 'center';
+            contentDiv.appendChild(div);
+            const p = document.createElement('p');
+            p.style.fontSize = '8rem';
+            p.textContent = secondsToHMS(totalSeconds);
+            div.appendChild(p);
+            const btn = document.createElement('button');
+            btn.textContent = 'Start';
+            btn.className = 'btn clickable';
+            div.appendChild(btn);
+            let interval = null;
+
+
+            let startTime = null;
+            const updateTimer = () => {
+                const now = new Date();
+                const diff = totalSeconds - Math.floor((now - startTime) / 1000);
+                if (diff <= 0) {
+                    p.textContent = "00:00:00";
+                    clearInterval(interval);
+                    interval = null;
+                    btn.textContent = 'Start';
+                    return;
+                }
+                p.textContent = secondsToHMS(diff);
+            };
+
+            btn.addEventListener('click', () => {
+                if (btn.textContent === 'Start') {
+                    startTime = new Date();
+                    updateTimer();
+                    interval = setInterval(updateTimer, 1000);
+                    btn.textContent = 'Stop';
+                } else {
+                    clearInterval(interval);
+                    interval = null;
+                    btn.textContent = 'Start';
+                }
+            });
+
+            return () => {
+                if (interval) {
+                    clearInterval(interval);
+                }
+                contentDiv.removeChild(div);
+            };
+        }
+
         let cleanup = () => {};
 
-        const render = () => {
+        const render = (options) => {
             cleanup();
-            const options = getOptions();
 
             document.documentElement.style.setProperty('--foreground-color', options.foregroundColor);
             document.documentElement.style.setProperty('--background-color', options.backgroundColor);
 
             switch (options.type) {
                 case 'text':
-                    cleanup = renderText(options.data, '2rem', options.foregroundColor);
+                    cleanup = renderText(options.text, '2rem', options.foregroundColor);
                     break;
                 case 'qrcode':
                     cleanup = renderQRCode(options.data, options.backgroundColor, options.foregroundColor);
+                    break;
+                case 'time':
+                    cleanup = renderTime();
+                    break;
+                case 'countdown':
+                    const targetTime = new Date(options.targetTime);
+                    if (isNaN(targetTime.getTime())) {
+                        cleanup = renderText('Invalid date for countdown', '2rem', options.foregroundColor);
+                    } else {
+                        cleanup = renderCountDown(targetTime);
+                    }
+                    break;
+                case 'stopwatch':
+                    cleanup = renderStopwatch();
+                    break;
+                case 'timer':
+                    cleanup = renderTimer(options.timerDuration);
                     break;
                 default:
                     const err = `Unknown type: ${options.type}`;
@@ -250,7 +523,10 @@
             }
         };
 
-        render();
+        render(getOptions());
+        window.addEventListener('popstate', () => {
+            render(getOptions());
+        });
     </script>
 </body>
 </html>
