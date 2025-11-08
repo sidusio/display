@@ -91,6 +91,16 @@
             border: 1px solid #ccc;
             border-radius: 5px;
         }
+
+        .github-link {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            height: 42px;
+            width: 42px;
+            /* Filter black to var(--blue) */
+            filter: invert(56%) sepia(80%) saturate(6902%) hue-rotate(200deg) brightness(102%) contrast(106%);
+        }
     </style>
 </head>
 <body>
@@ -117,6 +127,10 @@
             </form>
         </div>
     </div>
+
+    <a href="https://github.com/sidusio/display" target="_blank" class="github-link">
+        <img src="./assets/square-github-brands-solid-full.svg" alt="Sourcecode repository on GitHub">
+    </a>
 
     <script type="module">
         const creator = document.querySelector('.creator');
