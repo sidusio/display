@@ -27,6 +27,7 @@
             justify-content: center;
             align-items: center;
             height: 100%;
+            padding: 2rem;
         }
 
         .creator {
@@ -139,7 +140,9 @@
             <label for="type">
                 Type
                 <select name="type" id="type">
-                    <option value="text">Text</option>
+                    <option value="largeText">Large Text</option>
+                    <option value="hugeText">Huge Text</option>
+                    <option value="text">Normal Text</option>
                     <option value="qrcode">QR Code</option>
                     <option value="time">Current Time</option>
                     <option value="countdown">Countdown</option>
@@ -203,13 +206,21 @@
         }
 
         const inputsForType = {
-            text: ['text', 'foregroundColor', 'backgroundColor'],
-            qrcode: ['data', 'backgroundColor', 'foregroundColor'],
-            time: ['backgroundColor', 'foregroundColor'],
-            countdown: ['targetTime', 'backgroundColor', 'foregroundColor'],
-            stopwatch: ['backgroundColor', 'foregroundColor'],
-            timer: ['timerDuration', 'backgroundColor', 'foregroundColor'],
+            text: ['text'],
+            largeText: ['text'],
+            hugeText: ['text'],
+            qrcode: ['data'],
+            time: [],
+            countdown: ['targetTime'],
+            stopwatch: [],
+            timer: ['timerDuration'],
         };
+        for (const type in inputsForType) {
+            if (inputsForType.hasOwnProperty(type)) {
+                inputsForType[type].push('foregroundColor');
+                inputsForType[type].push('backgroundColor');
+            }
+        }
 
         const setURLParameters = () => {
             const validInputs = inputsForType[form.elements.namedItem('type').value] || [];
@@ -496,6 +507,12 @@
             switch (options.type) {
                 case 'text':
                     cleanup = renderText(options.text, '2rem', options.foregroundColor);
+                    break;
+                case 'largeText':
+                    cleanup = renderText(options.text, '4rem', options.foregroundColor);
+                    break;
+                case 'hugeText':
+                    cleanup = renderText(options.text, '8rem', options.foregroundColor);
                     break;
                 case 'qrcode':
                     cleanup = renderQRCode(options.data, options.backgroundColor, options.foregroundColor);
