@@ -12,19 +12,21 @@
     </script>-->
     <script src="https://unpkg.com/easyqrcodejs@4.6.2/dist/easy.qrcode.min.js"></script>
     <style>
+        :root {
+            --foreground-color: #000000;
+            --background-color: #ffffff;
+        }
         * {
             box-sizing: border-box;
-        }
-        :root {
-            --blue: #007bff;
-            --dark-blue: #0056b3;
-            --transition: all .2s ease-in-out;
+            transition: all .2s ease-in-out;
+            font-size: 1rem;
         }
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             height: 100vh;
             overflow: hidden;
+            background-color: var(--background-color);
         }
         #content {
             text-align: center;
@@ -37,125 +39,143 @@
         .creator {
             position: absolute;
             top: 0;
-            right: -320px;
             bottom: 0;
+
+            --width: 320px;
+            width: var(--width);
+
+            /* Hide the drawer off-screen to the right unless it is opened */
+            right: calc(-1 * var(--width));
+            &.open {
+                right: 0;
+            }
+
+            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+
+            /* Align the drawer tab to the middle of the page*/
             display: flex;
             align-items: center;
-            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
-            transition: var(--transition);
+
+            .tab {
+                position: absolute;
+                transform: rotate(-90deg);
+                transform-origin: bottom left;
+                padding: .5rem .75rem;
+                border-top-right-radius: 10px;
+                border-top-left-radius: 10px;
+                border: none;
+                background-color: var(--foreground-color);
+                color: var(--background-color);
+            }
+
+            form {
+                position: relative;
+                height: 100%;
+                padding: 1.5rem;
+                width: 100%;
+
+                background-color: white;
+
+                label {
+                    display: flex;
+                    flex-direction: column;
+                    gap: .2rem;
+
+                    input, select {
+                        padding: .5rem;
+                        border: 1px solid #ccc;
+                        border-radius: 5px;
+                    }
+                }
+
+                .btn {
+                    position: absolute;
+                    bottom: 1.5rem;
+                    right: 1.5rem;
+                    display: inline-block;
+                    background-color: cornflowerblue;
+                }
+            }
         }
 
-        .creator.open {
-            right: 0;
-        }
-
-        .open-creator {
-            position: absolute;
-            transform: rotate(-90deg);
-            transform-origin: bottom left;
-            padding: .5rem .75rem;
-            border-top-right-radius: 10px;
-            border-top-left-radius: 10px;
-            border: none;
-            background-color: var(--blue);
-            color: white;
+        .clickable {
             cursor: pointer;
-            font-size: 1rem;
-            transition: var(--transition);
-        }
+            background-color: var(--foreground-color);
+            color: white;
 
-        .open-creator:hover {
-            background-color: var(--dark-blue);
-        }
-
-        .creator-container {
-            position: relative;
-            background-color: #ffffff;
-            width: 320px;
-            height: 100%;
-            padding: 1.5rem;
+            &:hover {
+                filter: brightness(90%);
+            }
         }
 
         .btn {
-            position: absolute;
-            bottom: 1.5rem;
-            right: 1.5rem;
-            display: inline-block;
             padding: .5rem 1rem;
             border: none;
             border-radius: 5px;
-            background-color: var(--blue);
-            color: white;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: var(--transition);
-        }
-
-        .btn:hover {
-            background-color: var(--dark-blue);
-        }
-
-        label {
-            display: flex;
-            flex-direction: column;
-            gap: .2rem;
-        }
-
-        input, select {
-            padding: .5rem;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 1rem;
         }
 
         .github-link {
             position: absolute;
             bottom: 10px;
             left: 10px;
-            height: 42px;
-            width: 42px;
-            /* Filter black to var(--blue) */
-            filter: invert(56%) sepia(80%) saturate(6902%) hue-rotate(200deg) brightness(102%) contrast(106%);
-            transition: var(--transition);
+
+            &:hover {
+                transform: scale(1.1);
+            }
         }
 
-        .github-link:hover {
-            transform: scale(1.1);
+        .github-icon {
+            height: 42px;
+            width: 42px;
+
+            mask-image: url('./assets/square-github-brands-solid-full.svg');
+            --webkit-mask-image: url('./assets/square-github-brands-solid-full.svg');
+            mask-size: cover;
+            --webkit-mask-size: cover;
+            background-color: var(--foreground-color);
         }
     </style>
 </head>
 <body>
     <div id="content"></div>
     <div class="creator">
-        <button class="open-creator">Create your own</button>
+        <button class="tab clickable">Create your own</button>
 
-        <div class="creator-container">
-            <form action="index.html" method="get">
-                <label for="type">
-                    Type
-                    <select name="type" id="type">
-                        <option value="text">Text</option>
-                        <option value="qrcode">QR Code</option>
-                    </select>
-                </label>
-                <br>
-                <label for="data">
-                    Data
-                    <input type="text" id="data" name="data" value="Hello, World!">
-                </label>
-                <br>
-                <input type="submit" value="Create" class="btn">
-            </form>
-        </div>
+        <form action="index.html" method="get">
+            <label for="type">
+                Type
+                <select name="type" id="type">
+                    <option value="text">Text</option>
+                    <option value="qrcode">QR Code</option>
+                </select>
+            </label>
+            <br>
+            <label for="data">
+                Data
+                <input type="text" id="data" name="data" value="Hello, World!">
+            </label>
+            <br>
+            <label for="backgroundColor">
+                Background Color (for QR Code)
+                <input type="color" id="backgroundColor" name="backgroundColor" value="#ffffff">
+            </label>
+            <br>
+            <label for="foregroundColor">
+                Foreground Color (for QR Code)
+                <input type="color" id="foregroundColor" name="foregroundColor" value="#000000">
+            </label>
+            <br>
+            <input type="submit" value="Create" class="btn clickable">
+        </form>
     </div>
 
     <a href="https://github.com/sidusio/display" target="_blank" class="github-link">
-        <img src="./assets/square-github-brands-solid-full.svg" alt="Sourcecode repository on GitHub">
+        <div class="github-icon"></div>
     </a>
 
     <script type="module">
         const creator = document.querySelector('.creator');
-        const openButton = document.querySelector('.open-creator');
+        const openButton = document.querySelector('.creator .tab');
 
         let isOpen = false;
 
@@ -174,46 +194,59 @@
 
         const contentDiv = document.getElementById('content');
 
-        const defaultCleanup = () => {
-            while (contentDiv.firstChild) {
-                contentDiv.removeChild(contentDiv.firstChild);
-            }
-        };
-        let cleanup = defaultCleanup;
-
         const getOptions = () => {
             const params = new URLSearchParams(window.location.search);
             return {
                 type: params.get('type') || 'text',
                 data: params.get('data') || 'Hello, World!',
+                backgroundColor: params.get('backgroundColor') || '#ffffff',
+                foregroundColor: params.get('foregroundColor') || '#000000',
             };
         };
 
+        const renderQRCode = (data, backgroundColor, foregroundColor) => {
+            const qrCode =  new QRCode(contentDiv, {
+                text: data,
+                height: 512,
+                width: 512,
+                colorDark: foregroundColor || "#000000",
+                colorLight: backgroundColor || "#ffffff",
+            });
+            return () => {
+                qrCode.clear();
+            };
+        };
+
+        const renderText = (data, fontSize, color) => {
+            const p = document.createElement('p');
+            p.textContent = data;
+            p.style.fontSize = fontSize || '2rem';
+            p.style.color = color;
+            contentDiv.appendChild(p);
+            return () => {
+                contentDiv.removeChild(p);
+            };
+        };
+
+        let cleanup = () => {};
+
         const render = () => {
             cleanup();
-
             const options = getOptions();
+
+            document.documentElement.style.setProperty('--foreground-color', options.foregroundColor);
+            document.documentElement.style.setProperty('--background-color', options.backgroundColor);
 
             switch (options.type) {
                 case 'text':
-                    const p = document.createElement('p');
-                    p.classList.add('text-display')
-                    p.textContent = options.data;
-                    contentDiv.appendChild(p);
+                    cleanup = renderText(options.data, '2rem', options.foregroundColor);
                     break;
                 case 'qrcode':
-                    const qrCode = new QRCode(contentDiv, {
-                        text: options.data
-                    });
-                    cleanup = () => {
-                        qrCode.clear();
-                        defaultCleanup();
-                    };
+                    cleanup = renderQRCode(options.data, options.backgroundColor, options.foregroundColor);
                     break;
                 default:
-                    const err = document.createElement('p');
-                    err.textContent = `Unknown type: ${options.type}`;
-                    contentDiv.appendChild(err);
+                    const err = `Unknown type: ${options.type}`;
+                    cleanup = renderText(err, '1rem', options.foregroundColor);
             }
         };
 
