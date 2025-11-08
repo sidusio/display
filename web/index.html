@@ -16,6 +16,7 @@
             font-family: Arial, sans-serif;
             margin: 0;
             height: 100vh;
+            overflow: hidden;
         }
         #content {
             text-align: center;
@@ -24,17 +25,73 @@
             align-items: center;
             height: 100%;
         }
-        nav {
-            position: fixed;
+
+        .creator {
+            position: absolute;
+            top: 0;
+            right: -320px;
             bottom: 0;
+            display: flex;
+            align-items: center;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+            transition: right .2s ease-in-out;
+        }
+
+        .creator.open {
             right: 0;
+        }
+
+        .open-creator {
+            position: absolute;
+            transform: rotate(-90deg);
+            transform-origin: bottom left;
+            padding: .5rem .75rem;
+        }
+
+        .creator-container {
             background-color: #f0f0f0;
+            width: 320px;
+            height: 100%;
         }
     </style>
 </head>
 <body>
     <div id="content"></div>
-    <nav>Settings</nav>
+    <div class="creator">
+        <button class="open-creator">Create your own</button>
+
+        <div class="creator-container">
+            <form action="index.html" method="get" target="_blank">
+                <label for="type">Type:</label>
+                <select name="type" id="type">
+                    <option value="text">Text</option>
+                    <option value="qrcode">QR Code</option>
+                </select>
+                <br>
+                <label for="data">Data:</label>
+                <input type="text" id="data" name="data" value="Hello, World!">
+                <br>
+                <input type="submit" value="Create">
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        const creator = document.querySelector('.creator');
+        const openButton = document.querySelector('.open-creator');
+
+        let isOpen = false;
+
+        openButton.addEventListener('click', () => {
+            isOpen = !isOpen;
+            if (isOpen) {
+                creator.classList.add('open');
+            } else {
+                creator.classList.remove('open');
+            }
+        });
+    </script>
+
     <script type="module">
         // easy.qrcode.min.js defines a global `QRCode`
 
