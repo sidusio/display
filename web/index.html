@@ -12,6 +12,12 @@
     </script>-->
     <script src="https://unpkg.com/easyqrcodejs@4.6.2/dist/easy.qrcode.min.js"></script>
     <style>
+        * {
+            box-sizing: border-box;
+        }
+        :root {
+            --blue: #007bff;
+        }
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -46,12 +52,44 @@
             transform: rotate(-90deg);
             transform-origin: bottom left;
             padding: .5rem .75rem;
+            border-top-right-radius: 10px;
+            border-top-left-radius: 10px;
+            border: none;
+            background-color: var(--blue);
+            color: white;
         }
 
         .creator-container {
-            background-color: #f0f0f0;
+            position: relative;
+            background-color: #ffffff;
             width: 320px;
             height: 100%;
+            padding: 1.5rem;
+        }
+
+        .btn {
+            position: absolute;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            display: inline-block;
+            padding: .5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--blue);
+            color: white;
+            cursor: pointer;
+        }
+
+        label {
+            display: flex;
+            flex-direction: column;
+            gap: .2rem;
+        }
+
+        input, select {
+            padding: .5rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
     </style>
 </head>
@@ -61,17 +99,21 @@
         <button class="open-creator">Create your own</button>
 
         <div class="creator-container">
-            <form action="index.html" method="get" target="_blank">
-                <label for="type">Type:</label>
-                <select name="type" id="type">
-                    <option value="text">Text</option>
-                    <option value="qrcode">QR Code</option>
-                </select>
+            <form action="index.html" method="get">
+                <label for="type">
+                    Type
+                    <select name="type" id="type">
+                        <option value="text">Text</option>
+                        <option value="qrcode">QR Code</option>
+                    </select>
+                </label>
                 <br>
-                <label for="data">Data:</label>
-                <input type="text" id="data" name="data" value="Hello, World!">
+                <label for="data">
+                    Data
+                    <input type="text" id="data" name="data" value="Hello, World!">
+                </label>
                 <br>
-                <input type="submit" value="Create">
+                <input type="submit" value="Create" class="btn">
             </form>
         </div>
     </div>
